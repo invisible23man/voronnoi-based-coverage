@@ -1,3 +1,4 @@
+import pickle
 from field import Field
 from coverage import (create_circular_grid, 
                       generate_lawnmower_paths, update_voronoi_centers)
@@ -33,6 +34,11 @@ for i in range(iterations):
 # field.plot_3d()
 # Plot lawnmower paths using grid for all Voronoi regions
 # plot_paths(paths, 'Lawnmower Paths (Grid-Based Approach)', weed_centers)
+
+# Save iterations data to a file
+with open("./results/runs/iterations_data.pkl", "wb") as file:
+    pickle.dump(iterations_data, file)
+
 
 # Generate GIF
 plot_voronoi_iterations(iterations_data, field.X, field.Y, field.weeds)
