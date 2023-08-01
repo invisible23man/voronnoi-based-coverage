@@ -104,7 +104,7 @@ def remaining_path(region, sampled_path):
     """Generate the remaining path in the region after subtracting the sampled path."""
     return np.array([point for point in region if point not in sampled_path])
 
-def calculate_repulsion_forces(drone_positions):
+def calculate_repulsion_forces(drone_positions, repulsion_weight = 30):
     repulsion_forces = np.zeros_like(drone_positions)
     for i in range(len(drone_positions)):
         for j in range(i):
@@ -113,7 +113,7 @@ def calculate_repulsion_forces(drone_positions):
             # Calculate the distance between the drones
             distance = np.linalg.norm(diff_vector)
             # Calculate the repulsion force
-            repulsion_force = diff_vector / distance**3
+            repulsion_force = repulsion_weight*(diff_vector / distance**3)
             # Add the repulsion force to the forces on both drones
             repulsion_forces[i] += repulsion_force
             repulsion_forces[j] -= repulsion_force

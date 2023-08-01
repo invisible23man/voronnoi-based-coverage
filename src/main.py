@@ -1,7 +1,7 @@
 import pickle
 from tqdm import tqdm
 from field import Field
-from coverage import (create_circular_grid, 
+from coverage import (calculate_repulsion_forces, create_circular_grid, 
                       generate_lawnmower_paths, update_voronoi_centers)
 from plotting import (plot_field, plot_voronoi, plot_voronoi_iterations_3d,
                       plot_weed_distribution_with_voronoi, plot_paths,
@@ -33,9 +33,11 @@ grid_points = create_circular_grid((0, 0), radius, grid_resolution)
 iterations_data = []
 for i in tqdm(range(iterations)):
     centers = field.get_drone_positions()
+    repulsion_forces = calculate_repulsion_forces(centers)
     paths, regions = generate_lawnmower_paths(grid_points, centers, grid_resolution, total_time_budget)
     new_centers = update_voronoi_centers(paths, regions, field.weeds, field.drones, 
                                          grid_points, centers, sensor_estimation_model, estimation)
+    new_centers += repulsion_forces  # Add the repulsion forces to the new centers
     field.update_drone_positions(new_centers)
     iterations_data.append((centers, paths, new_centers))
 

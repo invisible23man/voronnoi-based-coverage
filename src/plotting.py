@@ -65,8 +65,7 @@ def plot_voronoi_iterations(iterations_data, X, Y, weeds, path, interval=2000):
         ax.set_title(f"Iteration {i+1}")
 
     ani = FuncAnimation(fig, animate, frames=len(iterations_data), interval=interval)
-    # ani.save(path, writer='imagemagick')
-    ani.save(path)
+    ani.save(path, writer='imagemagick')
 
 def plot_voronoi_iterations_3d(iterations_data, X, Y, weeds, path, interval=2000):
     fig = plt.figure()
@@ -85,5 +84,4 @@ def plot_voronoi_iterations_3d(iterations_data, X, Y, weeds, path, interval=2000
         ax.set_title(f"Iteration {i+1}")
 
     ani = FuncAnimation(fig, animate, frames=len(iterations_data), interval=interval)
-    # ani.save(path, writer='imagemagick')
-    ani.save(path)
+    ani.save(path, writer='imagemagick')
