@@ -1,7 +1,6 @@
 import numpy as np
 from shapely.geometry import Point, Polygon
 from drone import Drone
-import rospy
 
 from sampling import estimated_measurements, true_measurements
 
@@ -73,7 +72,7 @@ def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid
             else:
                 remaining_path_points = np.empty_like(path)
                 estimated_weed_concentration = np.empty_like(sampled_weed_concentration)
-                # rospy.loginfo("Partiiton Already Covered in Sampling Time")
+                print("Partiiton Already Covered in Sampling Time")
 
             # Get Complete Picture
             path = np.concatenate((path, remaining_path_points))
@@ -91,7 +90,7 @@ def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid
             if len(remaining_path_points) > 0:
                 new_center = remaining_path_points[0]
             else:
-                # rospy.loginfo("No remaining path points available. Drone position will not be updated.")
+                print("No remaining path points available. Drone position will not be updated.")
                 new_center = drone.get_position()  # Set new center as current position if no remaining path points
         else:
             new_center = [cx, cy]
@@ -99,9 +98,23 @@ def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid
         # Append new center to the list
         new_centers.append(new_center)
 
-        return new_centers
+    return np.array(new_centers)
 
 def remaining_path(region, sampled_path):
     """Generate the remaining path in the region after subtracting the sampled path."""
     return np.array([point for point in region if point not in sampled_path])
 
+def calculate_repulsion_forces(drone_positions):
+    repulsion_forces = np.zeros_like(drone_positions)
+    for i in range(len(drone_positions)):
+        for j in range(i):
+            # Calculate the vector from drone j to drone i
+            diff_vector = drone_positions[i] - drone_positions[j]
+            # Calculate the distance between the drones
+            distance = np.linalg.norm(diff_vector)
+            # Calculate the repulsion force
+            repulsion_force = diff_vector / distance**3
+            # Add the repulsion force to the forces on both drones
+            repulsion_forces[i] += repulsion_force
+            repulsion_forces[j] -= repulsion_force
+    return repulsion_forces

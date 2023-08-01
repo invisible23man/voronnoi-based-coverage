@@ -2,7 +2,7 @@ import datetime
 import os
 
 # Create timestamp for current run
-timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+timestamp = datetime.datetime.now().strftime('%Y%m%d%H') # '%Y%m%d%H%M%S'
 
 # Define paths for saving results
 results_directory = f"./results/{timestamp}/runs"

@@ -23,9 +23,9 @@ class Field:
         r = np.sqrt((self.radius**2) / self.drone_count)  # Radius of the smaller circle
         for i in range(self.drone_count):
             angle = 2 * np.pi * i / self.drone_count  # Equally spaced angles
-            x = r * np.cos(angle)
-            y = r * np.sin(angle)
-            drones.append(Drone(x, y,self.sensor_estimation_model))
+            x = r * np.cos(angle) + np.random.uniform(-0.001, 0.001)
+            y = r * np.sin(angle) + np.random.uniform(-0.001, 0.001)
+            drones.append(Drone(x, y, self.sensor_estimation_model))
         return drones
 
     def _generate_weed_distribution(self):
