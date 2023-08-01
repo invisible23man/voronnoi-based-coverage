@@ -6,6 +6,7 @@ from coverage import (create_circular_grid,
 from plotting import (plot_field, plot_voronoi, plot_voronoi_iterations_3d,
                       plot_weed_distribution_with_voronoi, plot_paths,
                       plot_voronoi_iterations)
+from housekeeping import *
 
 # Define parameters
 radius = 25
@@ -17,9 +18,9 @@ total_time_budget = 100
 grid_resolution = 1
 sensor_estimation_model = 'kde'
 
-iteration_result_path = f"./results/runs/{sensor_estimation_model}/iterations_data.pkl"
-plot_path_2d = f'./results/plots/{sensor_estimation_model}/drone_movement_2d.gif'
-plot_path_3d = f'./results/plots/{sensor_estimation_model}/drone_movement_3d.gif'
+iteration_result_path = os.path.join(results_directory,f"{sensor_estimation_model}-iterations_data.pkl")
+plot_path_2d = os.path.join(plots_directory,f'{sensor_estimation_model}-drone_movement_2d.gif')
+plot_path_3d = os.path.join(plots_directory,f'{sensor_estimation_model}-drone_movement_3d.gif')
 
 # Initialize field
 field = Field(radius, drone_count, weed_centers, weed_cov, sensor_estimation_model)

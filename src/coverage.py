@@ -72,7 +72,7 @@ def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid
         else:
             remaining_path_points = np.empty_like(path)
             estimated_weed_concentration = np.empty_like(sampled_weed_concentration)
-            rospy.loginfo("Partiiton Already Covered in Sampling Time")
+            # rospy.loginfo("Partiiton Already Covered in Sampling Time")
 
         # Get Complete Picture
         path = np.concatenate((path, remaining_path_points))
@@ -88,7 +88,7 @@ def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid
             if len(remaining_path_points) > 0:
                 new_center = remaining_path_points[0]
             else:
-                rospy.loginfo("No remaining path points available. Drone position will not be updated.")
+                # rospy.loginfo("No remaining path points available. Drone position will not be updated.")
                 new_center = drone.get_position()  # Set new center as current position if no remaining path points
         else:
             new_center = [cx, cy]
