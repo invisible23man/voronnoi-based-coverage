@@ -68,7 +68,7 @@ def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid
 
             if len(remaining_path_points)>0:
                 # Estimate the weed density using the selected method
-                estimated_weed_concentration= estimated_measurements(remaining_path_points, drone.sensor_estimation_model, method='kde')
+                estimated_weed_concentration= estimated_measurements(remaining_path_points, drone.sensor_estimation_model, method)
             else:
                 remaining_path_points = np.empty_like(path)
                 estimated_weed_concentration = np.empty_like(sampled_weed_concentration)

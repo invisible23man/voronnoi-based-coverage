@@ -11,12 +11,13 @@ from housekeeping import *
 # Define parameters
 radius = 25
 drone_count = 10
-weed_centers = [[-15, -15], [15, 15]]
+# weed_centers = [[-15, -15], [15, 15]]
+weed_centers = [[15, 15]]
 weed_cov = [[5, 0], [0, 5]]
 iterations = 15
 total_time_budget = 100
 grid_resolution = 1
-sensor_estimation_model = 'kde'
+sensor_estimation_model = 'truncated_gmm'
 estimation = True
 
 iteration_result_path = os.path.join(results_directory,f"{sensor_estimation_model}-iterations_data.pkl")

@@ -24,7 +24,9 @@ def true_measurements(true_weed_density, sampled_points):
     return np.array([true_weed_density[int(point[0]), int(point[1])] for point in sampled_points])
 
 def estimated_measurements(sampled_points, sensor, method='kde'):
-    if method == 'kde':
+    if method == 'truncated_gmm':
+        estimated_density = sensor.predict(sampled_points)
+    elif method == 'kde':
         log_density = sensor.score_samples(sampled_points)
         estimated_density = np.exp(log_density)
     elif method == 'dpmm':
