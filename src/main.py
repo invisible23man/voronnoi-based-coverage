@@ -1,4 +1,5 @@
 import pickle
+from tqdm import tqdm
 from field import Field
 from coverage import (create_circular_grid, 
                       generate_lawnmower_paths, update_voronoi_centers)
@@ -11,20 +12,27 @@ radius = 25
 drone_count = 10
 weed_centers = [[-15, -15], [15, 15]]
 weed_cov = [[5, 0], [0, 5]]
-iterations = 10
+iterations = 50
+total_time_budget = 100
+grid_resolution = 1
+sensor_estimation_model = 'kde'
+
+iteration_result_path = f"./results/runs/{sensor_estimation_model}/iterations_data.pkl"
+plot_path_2d = f'./results/plots/{sensor_estimation_model}/drone_movement_2d.gif'
+plot_path_3d = f'./results/plots/{sensor_estimation_model}/drone_movement_3d.gif'
 
 # Initialize field
-field = Field(radius, drone_count, weed_centers, weed_cov)
+field = Field(radius, drone_count, weed_centers, weed_cov, sensor_estimation_model)
 
 # Create grid for the entire field
-grid_points = create_circular_grid((0, 0), 25, 1)
+grid_points = create_circular_grid((0, 0), radius, grid_resolution)
 
 # Iterations
 iterations_data = []
-for i in range(iterations):
+for i in tqdm(range(iterations)):
     centers = field.get_drone_positions()
-    paths = generate_lawnmower_paths(grid_points, centers, 1)
-    new_centers = update_voronoi_centers(paths, field.weeds, grid_points, centers)
+    paths, regions = generate_lawnmower_paths(grid_points, centers, grid_resolution, total_time_budget)
+    new_centers = update_voronoi_centers(paths, regions, field.weeds, field.drones, grid_points, centers, sensor_estimation_model)
     field.update_drone_positions(new_centers)
     iterations_data.append((centers, paths, new_centers))
 
@@ -36,10 +44,10 @@ for i in range(iterations):
 # plot_paths(paths, 'Lawnmower Paths (Grid-Based Approach)', weed_centers)
 
 # Save iterations data to a file
-with open("./results/runs/iterations_data.pkl", "wb") as file:
+with open(iteration_result_path, "wb") as file:
     pickle.dump(iterations_data, file)
 
 
 # Generate GIF
-plot_voronoi_iterations(iterations_data, field.X, field.Y, field.weeds)
-plot_voronoi_iterations_3d(iterations_data, field.X, field.Y, field.weeds)
+plot_voronoi_iterations(iterations_data, field.X, field.Y, field.weeds, plot_path_2d, interval=200)
+plot_voronoi_iterations_3d(iterations_data, field.X, field.Y, field.weeds, plot_path_3d, interval=200)

@@ -7,9 +7,10 @@ from scipy.spatial import Voronoi
 
 class Field:
     """Class representing a circular field."""
-    def __init__(self, radius, drone_count, weed_centers, weed_cov):
+    def __init__(self, radius, drone_count, weed_centers, weed_cov, sensor_estimation_model):
         self.radius = radius
         self.drone_count = drone_count
+        self.sensor_estimation_model = sensor_estimation_model
         self.drones:Drone = self._distribute_drones()
         self.weed_centers = weed_centers
         self.weed_cov = weed_cov
@@ -24,7 +25,7 @@ class Field:
             angle = 2 * np.pi * i / self.drone_count  # Equally spaced angles
             x = r * np.cos(angle)
             y = r * np.sin(angle)
-            drones.append(Drone(x, y))
+            drones.append(Drone(x, y,self.sensor_estimation_model))
         return drones
 
     def _generate_weed_distribution(self):

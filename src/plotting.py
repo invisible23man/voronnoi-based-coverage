@@ -50,7 +50,7 @@ def plot_paths(paths, title, weed_centers):
     plt.grid(True)
     plt.show()
 
-def plot_voronoi_iterations(iterations_data, X, Y, weeds):
+def plot_voronoi_iterations(iterations_data, X, Y, weeds, path, interval=2000):
     fig, ax = plt.subplots()
 
     def animate(i):
@@ -64,10 +64,10 @@ def plot_voronoi_iterations(iterations_data, X, Y, weeds):
         ax.set_ylim(-30, 30)
         ax.set_title(f"Iteration {i+1}")
 
-    ani = FuncAnimation(fig, animate, frames=len(iterations_data), interval=2000)
-    ani.save('./results/plots/drone_movement.gif', writer='imagemagick')
+    ani = FuncAnimation(fig, animate, frames=len(iterations_data), interval=interval)
+    ani.save(path, writer='imagemagick')
 
-def plot_voronoi_iterations_3d(iterations_data, X, Y, weeds):
+def plot_voronoi_iterations_3d(iterations_data, X, Y, weeds, path, interval=2000):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -83,5 +83,5 @@ def plot_voronoi_iterations_3d(iterations_data, X, Y, weeds):
         ax.set_zlim(0, 5)
         ax.set_title(f"Iteration {i+1}")
 
-    ani = FuncAnimation(fig, animate, frames=len(iterations_data), interval=2000)
-    ani.save('./results/plots/drone_movement_3d.gif', writer='imagemagick')
+    ani = FuncAnimation(fig, animate, frames=len(iterations_data), interval=interval)
+    ani.save(path, writer='imagemagick')

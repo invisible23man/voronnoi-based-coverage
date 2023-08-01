@@ -1,5 +1,9 @@
 import numpy as np
 from shapely.geometry import Point, Polygon
+from drone import Drone
+import rospy
+
+from sampling import estimated_measurements, true_measurements
 
 def create_grid(x_range, y_range, grid_resolution):
     x_values = np.arange(x_range[0], x_range[1] + grid_resolution, grid_resolution)
@@ -23,12 +27,15 @@ def assign_grid_to_regions(grid_points, centers):
         regions[region_index].append(point)
     return regions
 
-def generate_lawnmower_path_for_region(region_points, grid_resolution):
+def generate_lawnmower_path_for_region(region_points, grid_resolution, time_budget):
+    """Generate a lawnmower path for a single Voronoi region using assigned grid points."""
     path = []
     sorted_points = sorted(region_points, key=lambda x: (x[1], x[0]))
     current_y = sorted_points[0][1]
     current_path = []
     for point in sorted_points:
+        if len(path) + len(current_path) + 1 > time_budget:  # Stop if adding another point would exceed the time budget
+            break
         if point[1] == current_y:
             current_path.append(point)
         else:
@@ -40,17 +47,58 @@ def generate_lawnmower_path_for_region(region_points, grid_resolution):
     path.extend(current_path)  # Add the last row
     return np.array(path)
 
-def generate_lawnmower_paths(grid_points, centers, grid_resolution):
+def generate_lawnmower_paths(grid_points, centers, grid_resolution, total_time_budget):
+    """Generate lawnmower paths for all Voronoi regions."""
+    time_budget_per_drone = total_time_budget / len(centers)
     regions = assign_grid_to_regions(grid_points, centers)
-    paths = [generate_lawnmower_path_for_region(region, grid_resolution) for region in regions]
-    return paths
+    paths = [generate_lawnmower_path_for_region(region, grid_resolution, time_budget_per_drone) for region in regions]
+    return paths, regions
 
-def update_voronoi_centers(paths, weed_density, grid_points, centers):
+def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid_points, centers, method='kde'):
     new_centers = []
-    for path in paths:
-        weed_concentration = np.array([weed_density[int(point[0]), int(point[1])] for point in path])
-        mv = np.sum(weed_concentration)
-        cx = np.sum(path[:, 0] * weed_concentration) / mv
-        cy = np.sum(path[:, 1] * weed_concentration) / mv
-        new_centers.append([cx, cy])
-    return np.array(new_centers)
+    for path, region, drone in zip(paths, regions, drones):
+        # Sample the true weed density using the sensor model
+        sampled_weed_concentration = true_measurements(true_weed_density, path)
+
+        # Update sensor model using the samppled measurements
+        drone.sensor_estimation_model.fit(path,sampled_weed_concentration)
+        
+        # Generate remaining path in the region
+        remaining_path_points = remaining_path(region, path)
+
+        if len(remaining_path_points)>0:
+            # Estimate the weed density using the selected method
+            estimated_weed_concentration= estimated_measurements(remaining_path_points, drone.sensor_estimation_model, method='kde')
+        else:
+            remaining_path_points = np.empty_like(path)
+            estimated_weed_concentration = np.empty_like(sampled_weed_concentration)
+            rospy.loginfo("Partiiton Already Covered in Sampling Time")
+
+        # Get Complete Picture
+        path = np.concatenate((path, remaining_path_points))
+        estimated_weed_density = np.concatenate((sampled_weed_concentration, estimated_weed_concentration))
+
+        # Compute mean coordinates weighted by the estimated weed concentration
+        mv = np.sum(estimated_weed_density)
+        cx = np.sum(path[:, 0] * estimated_weed_density) / mv
+        cy = np.sum(path[:, 1] * estimated_weed_density) / mv
+
+        # Check if new center is NaN
+        if np.isnan(cx) or np.isnan(cy):
+            if len(remaining_path_points) > 0:
+                new_center = remaining_path_points[0]
+            else:
+                rospy.loginfo("No remaining path points available. Drone position will not be updated.")
+                new_center = drone.get_position()  # Set new center as current position if no remaining path points
+        else:
+            new_center = [cx, cy]
+
+        # Append new center to the list
+        new_centers.append(new_center)
+
+        return new_centers
+
+def remaining_path(region, sampled_path):
+    """Generate the remaining path in the region after subtracting the sampled path."""
+    return np.array([point for point in region if point not in sampled_path])
+

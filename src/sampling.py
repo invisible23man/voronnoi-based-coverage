@@ -1,5 +1,7 @@
+from scipy.spatial.distance import cdist
+from scipy.linalg import det, inv
+from math import sqrt, pi
 import numpy as np
-from scipy.stats import multivariate_normal
 
 def sample_weed_density(weed_distribution, path_points, grid_points, grid_resolution):
     """Sample the weed density at each point in the path."""
@@ -26,3 +28,22 @@ def update_voronoi_centers(paths, weed_distribution, grid_points, grid_resolutio
             new_center = np.array([cx, cy])
         new_centers.append(new_center)
     return np.array(new_centers)
+
+def true_measurements(true_weed_density, sampled_points):
+    """
+    This function represents the sensor model. It should take in the true weed density and the sampled points and return an estimate of the weed density at the sampled points.
+    """
+    # Here we simply return the true weed density at the sampled points.
+    # This is a placeholder and should be replaced with an actual sensor model.
+    return np.array([true_weed_density[int(point[0]), int(point[1])] for point in sampled_points])
+
+def estimated_measurements(sampled_points, sensor, method='kde'):
+    if method == 'kde':
+        log_density = sensor.score_samples(sampled_points)
+        estimated_density = np.exp(log_density)
+    elif method == 'dpmm':
+        estimated_density = sensor.predict(sampled_points)
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
+    return estimated_density
