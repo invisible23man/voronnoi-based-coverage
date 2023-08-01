@@ -6,21 +6,26 @@ from coverage import (create_circular_grid,
 from plotting import (plot_field, plot_voronoi, plot_voronoi_iterations_3d,
                       plot_weed_distribution_with_voronoi, plot_paths,
                       plot_voronoi_iterations)
-from housekeeping import *
+# from housekeeping import *
 
 # Define parameters
 radius = 25
 drone_count = 10
 weed_centers = [[-15, -15], [15, 15]]
 weed_cov = [[5, 0], [0, 5]]
-iterations = 50
+iterations = 10
 total_time_budget = 100
 grid_resolution = 1
 sensor_estimation_model = 'kde'
+estimation = False
 
-iteration_result_path = os.path.join(results_directory,f"{sensor_estimation_model}-iterations_data.pkl")
-plot_path_2d = os.path.join(plots_directory,f'{sensor_estimation_model}-drone_movement_2d.gif')
-plot_path_3d = os.path.join(plots_directory,f'{sensor_estimation_model}-drone_movement_3d.gif')
+# iteration_result_path = os.path.join(results_directory,f"{sensor_estimation_model}-iterations_data.pkl")
+# plot_path_2d = os.path.join(plots_directory,f'{sensor_estimation_model}-drone_movement_2d.gif')
+# plot_path_3d = os.path.join(plots_directory,f'{sensor_estimation_model}-drone_movement_3d.gif')
+
+iteration_result_path = f"{sensor_estimation_model}-iterations_data.pkl"
+plot_path_2d = f'{sensor_estimation_model}-drone_movement_2d.gif'
+plot_path_3d = f'{sensor_estimation_model}-drone_movement_3d.gif'
 
 # Initialize field
 field = Field(radius, drone_count, weed_centers, weed_cov, sensor_estimation_model)
@@ -33,7 +38,8 @@ iterations_data = []
 for i in tqdm(range(iterations)):
     centers = field.get_drone_positions()
     paths, regions = generate_lawnmower_paths(grid_points, centers, grid_resolution, total_time_budget)
-    new_centers = update_voronoi_centers(paths, regions, field.weeds, field.drones, grid_points, centers, sensor_estimation_model)
+    new_centers = update_voronoi_centers(paths, regions, field.weeds, field.drones, 
+                                         grid_points, centers, sensor_estimation_model, estimation)
     field.update_drone_positions(new_centers)
     iterations_data.append((centers, paths, new_centers))
 

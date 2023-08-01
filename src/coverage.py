@@ -54,29 +54,32 @@ def generate_lawnmower_paths(grid_points, centers, grid_resolution, total_time_b
     paths = [generate_lawnmower_path_for_region(region, grid_resolution, time_budget_per_drone) for region in regions]
     return paths, regions
 
-def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid_points, centers, method='kde'):
+def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid_points, centers, method='kde', estimation=True):
     new_centers = []
     for path, region, drone in zip(paths, regions, drones):
         # Sample the true weed density using the sensor model
         sampled_weed_concentration = true_measurements(true_weed_density, path)
 
-        # Update sensor model using the samppled measurements
-        drone.sensor_estimation_model.fit(path,sampled_weed_concentration)
-        
-        # Generate remaining path in the region
-        remaining_path_points = remaining_path(region, path)
+        if estimation:
+            # Update sensor model using the samppled measurements
+            drone.sensor_estimation_model.fit(path,sampled_weed_concentration)
+            
+            # Generate remaining path in the region
+            remaining_path_points = remaining_path(region, path)
 
-        if len(remaining_path_points)>0:
-            # Estimate the weed density using the selected method
-            estimated_weed_concentration= estimated_measurements(remaining_path_points, drone.sensor_estimation_model, method='kde')
+            if len(remaining_path_points)>0:
+                # Estimate the weed density using the selected method
+                estimated_weed_concentration= estimated_measurements(remaining_path_points, drone.sensor_estimation_model, method='kde')
+            else:
+                remaining_path_points = np.empty_like(path)
+                estimated_weed_concentration = np.empty_like(sampled_weed_concentration)
+                # rospy.loginfo("Partiiton Already Covered in Sampling Time")
+
+            # Get Complete Picture
+            path = np.concatenate((path, remaining_path_points))
+            estimated_weed_density = np.concatenate((sampled_weed_concentration, estimated_weed_concentration))
         else:
-            remaining_path_points = np.empty_like(path)
-            estimated_weed_concentration = np.empty_like(sampled_weed_concentration)
-            # rospy.loginfo("Partiiton Already Covered in Sampling Time")
-
-        # Get Complete Picture
-        path = np.concatenate((path, remaining_path_points))
-        estimated_weed_density = np.concatenate((sampled_weed_concentration, estimated_weed_concentration))
+            estimated_weed_density = sampled_weed_concentration
 
         # Compute mean coordinates weighted by the estimated weed concentration
         mv = np.sum(estimated_weed_density)
