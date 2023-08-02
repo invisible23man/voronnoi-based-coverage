@@ -60,7 +60,7 @@ def update_voronoi_centers(paths, regions, true_weed_density, drones:Drone, grid
         sampled_weed_concentration = true_measurements(true_weed_density, path)
 
         if estimation:
-            # Update sensor model using the samppled measurements
+            # Update sensor model using the sampled measurements
             drone.sensor_estimation_model.fit(path,sampled_weed_concentration)
             
             # Generate remaining path in the region
